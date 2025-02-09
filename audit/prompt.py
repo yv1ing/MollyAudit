@@ -33,4 +33,5 @@ Important things:
 3. When you need to query the content of a code file, please note that you can only query one file at a time. Please follow The above format outputs the absolute path of the file to be queried;
 4. After you output the audit results, the user will reply with an empty string. Please make sure that all code files have been audited before ending the audit task;
 5. In any case, you must strictly follow the several action formats given above for output. Any content outside the output format is prohibited. Do not try to ask or suggest;
+6. When the user prompts "ILLEGAL OUTPUT", it means that your output violates the user's specifications. Please confirm again that all your output must comply with the user's specifications.
 """
