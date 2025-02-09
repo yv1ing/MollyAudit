@@ -26,7 +26,6 @@ class Audit:
     def __init__(self, base_url, api_key, reasoning_model, embedding_model, process_output_callback, result_output_callback):
         self.raw_chain = None
         self.source_files_list = []
-        self.max_token = 4096
         self.reasoning_model = reasoning_model
         self.embedding_model = embedding_model
         self.fortify_rules = FROTIFY_RULES
