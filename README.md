@@ -1,2 +1,5 @@
 # MollyAudit
-LLM-driven automatic code audit tool
+
+An automated code auditing tool powered by langchain.
+
+![](assets/img-01.png)
