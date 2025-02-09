@@ -1,26 +1,24 @@
-import json
-import os
-import warnings
-from audit import Audit
+import sys
+from PyQt6.QtWidgets import QApplication
+from app import load_config
+from app.ui import MainWindow
+
+app = QApplication(sys.argv)
 
 
-warnings.simplefilter('ignore', FutureWarning)
-
-os.environ['OPENAI_API_BASE'] = 'https://yunwu.ai/v1'
-os.environ['OPENAI_API_KEY'] = 'sk-FdKVL1IiRCMhTVScD4iIEfE2U7978rKuAQhPl0Gbr55l6fDD'
-
-fortify_rules = json.load(open('fortify_rules.json', 'r', encoding='utf-8'))
-
-
-def result_callback(result):
-    pass
+def main():
+    try:
+        app.exec()
+        return 0
+    except Exception as e:
+        print(e)
+        return 1
 
 
 if __name__ == '__main__':
-    src_root = r'C:\Users\yvling\Desktop\PHP-Vuln'
-    language = 'php'
+    load_config()
 
-    audit = Audit(fortify_rules)
-    audit.load_source_files(src_root, language)
-    audit.audit(result_callback)
+    window = MainWindow()
+    window.show()
 
+    sys.exit(main())
