@@ -1,8 +1,9 @@
 LANGUAGE = {
     'c': ['.c'],
-    'c++': ['.cc', '.cpp'],
+    'cpp': ['.cc', '.cpp'],
     'go': ['.go'],
     'php': ['php', 'php3', 'php4', 'php5', 'phtml'],
+    'jsp': ['.jsp'],
     'java': ['.java'],
     'python': ['.py'],
     'javascript': ['.js'],

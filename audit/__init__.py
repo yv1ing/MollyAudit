@@ -1,8 +1,6 @@
 import os
 import re
-import time
 import uuid
-import tiktoken
 import xml.etree.ElementTree as ET
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.messages import SystemMessage
@@ -20,17 +18,18 @@ from audit import callback
 from audit.prompt import SYSTEM_PROMPT
 from audit.language import LANGUAGE
 
-reasoning_model = 'gemini-2.0-flash-thinking-exp'
+reasoning_model = 'gpt-4o'
 embedding_model = 'text-embedding-3-large'
 
 xml_pattern = r'<root>.*?</root>'
 
 
 class Audit:
-    def __init__(self):
+    def __init__(self, fortify_rules):
         self.raw_chain = None
         self.source_files_list = []
         self.max_token = 4096
+        self.fortify_rules = fortify_rules
         self.chat_history = ChatMessageHistory()
         self.session_id = uuid.uuid4().hex
         self.response_callback = callback.CustomCallbackHandler()
@@ -93,12 +92,18 @@ class Audit:
                     self.log.info(f'Request source code: {content}')
                     input_content = open(content, 'r', encoding='utf-8').read()
                     continue
+                elif action == 'QUERY FORTIFY':
+                    self.log.info(f'Request fortify: {content}')
+                    input_content = '\n'.join(x for x in self.fortify_rules if x == content)
+                    continue
                 elif action == 'OUTPUT RESULT':
                     self.log.warning(f'Audit result: \n\n{content}')
                     self.store_messages_in_faiss(content)
                     callback_function(content)  # Callback function, used to obtain results externally
                     input_content = ''
                     continue
+                elif action == 'FINISH TASK':
+                    self.log.info(content)
                 else:
                     self.log.critical(f'Unknown action! {action}')
                     break
@@ -125,8 +130,6 @@ class Audit:
             input_messages_key='input',
             history_messages_key='messages',
         )
-
-        self.log.debug(f'Chat messages: {input_dict}')
 
         for _ in chain_with_message_history.stream(input_dict, config_dict):
             pass
