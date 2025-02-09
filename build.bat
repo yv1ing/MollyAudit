@@ -1,0 +1,1 @@
+.\.venv\Scripts\pyinstaller.exe --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=pydantic --hidden-import=pydantic-core --hidden-import=pydantic.deprecated.decorator --add-data "logo.ico;." -F -w -i logo.ico -n MollyAudit main.py

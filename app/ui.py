@@ -146,7 +146,7 @@ class MainWindow(QWidget):
         main_layout.addLayout(output_layout)
 
         self.setLayout(main_layout)
-        self.setWindowTitle('MollyAudit - created by yvling')
+        self.setWindowTitle('茉莉审计 - by yvling')
         screen = QGuiApplication.primaryScreen().geometry()
         window_width = 1000
         window_height = 600
@@ -156,9 +156,13 @@ class MainWindow(QWidget):
 
         # 导出结果
         export_button_layout = QHBoxLayout()
+        link_label = QLabel('联系作者：<a href="https://github.com/yv1ing">Github</a> <a href=mailto:me@yvling.cn>Email</a>')
+        link_label.setOpenExternalLinks(True)
+        export_button_layout.addWidget(link_label)
+        export_button_layout.addStretch(1)
+
         self.export_button = QPushButton('导出结果')
         self.export_button.clicked.connect(self.export_result)
-        export_button_layout.addStretch(1)  # 添加伸缩项，使按钮靠右
         export_button_layout.addWidget(self.export_button)
         main_layout.addLayout(export_button_layout)
 
@@ -268,4 +272,4 @@ class MainWindow(QWidget):
             del os.environ['OPENAI_API_BASE']
         if 'OPENAI_API_KEY' in os.environ:
             del os.environ['OPENAI_API_KEY']
-        self.log.info('已终止代码审计流程')
+        self.log.critical('已终止代码审计流程')
