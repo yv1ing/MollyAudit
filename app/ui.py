@@ -1,9 +1,9 @@
 import os
 import re
+import datetime
 import threading
 from threading import Event
-from app import audit_code, update_config, GLOBAL_CONFIG
-from app.utils import get_now_date
+from app import audit_code, real_update_config, GLOBAL_CONFIG
 from logger import Logger
 from PyQt6.QtGui import QColor, QGuiApplication, QTextCursor
 from PyQt6.QtWidgets import (
@@ -18,7 +18,6 @@ from PyQt6.QtWidgets import (
     QComboBox
 )
 
-
 BACKGROUND_COLOR = '#dcdcdc'
 ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 ANSI_COLOR_REGEX = re.compile(r'\x1B\[(?:([0-9]+);)?([0-9]+)m')
@@ -29,6 +28,12 @@ ANSI_COLOR_MAP = {
     '91': QColor(220, 0, 0),
     '95': QColor(180, 0, 180)
 }
+
+
+def get_now_date():
+    now = datetime.datetime.now()
+    formatted = now.strftime("%Y-%m-%d-%H-%M-%S")
+    return formatted
 
 
 def convert_ansi_to_rich_text(text):
@@ -57,7 +62,8 @@ def convert_ansi_to_rich_text(text):
 class MainWindow(QWidget):
     def __init__(self):
         self.event = Event()
-        self.log = Logger('ui', callback=self.process_output_callback)
+        self.log = Logger('app', callback=self.process_output_callback)
+
         super().__init__()
         self.init_ui()
 
@@ -100,14 +106,14 @@ class MainWindow(QWidget):
         main_layout.addLayout(config_layout)
 
         model_layout = QHBoxLayout()
-        self.reasoning_model_label = QLabel('推理模型:')
-        self.reasoning_model_input = QLineEdit()
-        self.embedding_model_label = QLabel('嵌入模型:')
-        self.embedding_model_input = QLineEdit()
-        model_layout.addWidget(self.reasoning_model_label)
-        model_layout.addWidget(self.reasoning_model_input)
-        model_layout.addWidget(self.embedding_model_label)
-        model_layout.addWidget(self.embedding_model_input)
+        self.cae_model_label = QLabel('模块分析模型:')
+        self.cae_model_input = QLineEdit()
+        self.csa_model_label = QLabel('代码审计模型:')
+        self.csa_model_input = QLineEdit()
+        model_layout.addWidget(self.cae_model_label)
+        model_layout.addWidget(self.cae_model_input)
+        model_layout.addWidget(self.csa_model_label)
+        model_layout.addWidget(self.csa_model_input)
         main_layout.addLayout(model_layout)
 
         # 按钮部分
@@ -156,7 +162,9 @@ class MainWindow(QWidget):
 
         # 导出结果
         export_button_layout = QHBoxLayout()
-        link_label = QLabel('联系作者：<a href="https://github.com/yv1ing">Github</a> <a href=mailto:me@yvling.cn>Email</a>')
+        link_label = QLabel(
+            '联系作者：<a href="https://github.com/yv1ing">Github</a> <a href=mailto:me@yvling.cn>Email</a>'
+        )
         link_label.setOpenExternalLinks(True)
         export_button_layout.addWidget(link_label)
         export_button_layout.addStretch(1)
@@ -169,8 +177,8 @@ class MainWindow(QWidget):
         # 加载配置
         self.base_url_input.setText(GLOBAL_CONFIG['base_url'])
         self.api_key_input.setText(GLOBAL_CONFIG['api_key'])
-        self.reasoning_model_input.setText(GLOBAL_CONFIG['reasoning_model'])
-        self.embedding_model_input.setText(GLOBAL_CONFIG['embedding_model'])
+        self.cae_model_input.setText(GLOBAL_CONFIG['cae_model'])
+        self.csa_model_input.setText(GLOBAL_CONFIG['csa_model'])
 
     def closeEvent(self, event):
         self.event.set()
@@ -182,14 +190,13 @@ class MainWindow(QWidget):
     def update_config(self):
         base_url = self.base_url_input.text()
         api_key = self.api_key_input.text()
-        reasoning_model = self.reasoning_model_input.text()
-        embedding_model = self.embedding_model_input.text()
+        cae_model = self.cae_model_input.text()
+        csa_model = self.csa_model_input.text()
 
-        update_config('base_url', base_url)
-        update_config('api_key', api_key)
-        update_config('reasoning_model', reasoning_model)
-        update_config('embedding_model', embedding_model)
-
+        real_update_config('base_url', base_url)
+        real_update_config('api_key', api_key)
+        real_update_config('cae_model', cae_model)
+        real_update_config('csa_model', csa_model)
         self.log.info('更新配置成功')
 
     def select_directory(self):
@@ -234,8 +241,8 @@ class MainWindow(QWidget):
         selected_lang = self.lang_combobox.currentText()
         base_url = self.base_url_input.text()
         api_key = self.api_key_input.text()
-        reasoning_model = self.reasoning_model_input.text()
-        embedding_model = self.embedding_model_input.text()
+        cae_model = self.cae_model_input.text()
+        csa_model = self.csa_model_input.text()
 
         if not selected_dir or not base_url or not api_key:
             self.log.error('请确保项目目录、接口地址和模型密钥等都已填写')
@@ -250,8 +257,8 @@ class MainWindow(QWidget):
                     api_key,
                     selected_dir,
                     selected_lang,
-                    reasoning_model,
-                    embedding_model,
+                    cae_model,
+                    csa_model,
                     self.process_output_callback,
                     self.result_output_callback,
                     self.event

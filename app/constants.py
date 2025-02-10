@@ -1,4 +1,4 @@
-LANGUAGE = {
+SUPPORT_LANGUAGE = {
     'c': ['.c'],
     'cpp': ['.cc', '.cpp'],
     'go': ['.go'],
