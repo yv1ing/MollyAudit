@@ -1,6 +1,9 @@
 import os
 import warnings
-from audit import Audit
+import logger
+from agents.CAE import CAE
+from agents.CSA import CSA
+from utils import build_directory_tree
 
 warnings.simplefilter('ignore', FutureWarning)
 
@@ -11,8 +14,8 @@ config_file_path = os.path.join(home_dir, config_file_name)
 GLOBAL_CONFIG = {
     "base_url": "https://openai.com/v1",
     "api_key": "",
-    "reasoning_model": "o3-mini-all",
-    "embedding_model": "text-embedding-3-small"
+    "csa_model": "gpt-4o",
+    "cae_model": "o3-mini-all",
 }
 
 
@@ -32,7 +35,7 @@ def load_config():
                 file.write(f"{key}={value}\n")
 
 
-def update_config(key, value):
+def real_update_config(key, value):
     global GLOBAL_CONFIG
 
     GLOBAL_CONFIG[key] = value
@@ -41,8 +44,18 @@ def update_config(key, value):
             file.write(f"{k}={v}\n")
 
 
-def audit_code(base_url, api_key, src_root, language, reasoning_model, embedding_model, process_output_callback,
+def audit_code(base_url, api_key, src_root, language, cae_model, csa_model, process_output_callback,
                result_output_callback, event):
-    audit = Audit(base_url, api_key, reasoning_model, embedding_model, process_output_callback, result_output_callback)
-    audit.build_directory_tree(src_root, language)
-    audit.audit(event)
+    log = logger.Logger('app', process_output_callback)
+
+    csa = CSA(base_url=base_url, api_key=api_key, model=csa_model, process_output_callback=process_output_callback)
+    cae = CAE(base_url=base_url, api_key=api_key, model=cae_model, process_output_callback=process_output_callback)
+
+    project_structure = build_directory_tree(src_root, language, process_output_callback)
+    if project_structure is None:
+        log.error('未找到源代码文件')
+        return
+
+    project_module_division = csa.analyse(project_structure=project_structure)
+    cae.audit(project_structure=project_structure, project_module_division=project_module_division, event=event,
+              result_output_callback=result_output_callback)
