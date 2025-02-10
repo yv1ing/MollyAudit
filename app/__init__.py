@@ -44,5 +44,5 @@ def update_config(key, value):
 def audit_code(base_url, api_key, src_root, language, reasoning_model, embedding_model, process_output_callback,
                result_output_callback, event):
     audit = Audit(base_url, api_key, reasoning_model, embedding_model, process_output_callback, result_output_callback)
-    audit.load_source_files(src_root, language)
+    audit.build_directory_tree(src_root, language)
     audit.audit(event)
